@@ -136,6 +136,14 @@ class KV:
                 continue
             self.store[key] = p
 
+    def __del__(self):
+        # on close of program, dump the data to a file
+        # print("Garbage Collection: Dumping to file for storage")
+        self.dump()
+
+    def __str__(self):
+        return f"Name: {self.name}, Store Keys Amount: {len(self.store)}"
+
 
 def main():
     kv1 = KV(name="transactions")
