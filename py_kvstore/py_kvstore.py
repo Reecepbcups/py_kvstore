@@ -26,6 +26,7 @@ class Pair:
 
 
 class KV:
+    # TODO: Specify in memory or on the disk (slower, but better for large data sets)
     def __init__(self, name: Optional[str] = None, dump_dir=None):
         self.name = name
         self.store: dict[str, Pair] = {}
