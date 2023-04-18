@@ -53,6 +53,19 @@ class KV:
 
         self.store[key] = Pair(value, timeout)
 
+    def incr(self, key: str, value: int = 1) -> int:
+        """Returns the new value"""
+        if key not in self.store:
+            self.set(key, value)
+            return value
+
+        # what if key value is not an int?
+        if not isinstance(self.store[key].value, int):
+            raise Exception(f"key:{key}'s value is not an int")
+
+        self.store[key].value += value
+        return self.store[key].value
+
     def get(self, key) -> Any | None:
         self.delete_expired_data_if_applicable(key)
 
@@ -145,6 +158,16 @@ def main():
 
         # kv1.dbg()
         # kv1.dump()
+
+        kv1.set("counter", 0)
+        v = kv1.incr("counter")
+        print(kv1.get("counter"), v)  # 1
+        v = kv1.incr("counter", 5)
+        print(kv1.get("counter"), v)  # 6
+
+        # set counter as a string fails
+        # kv1.set("counter", "0")
+        # kv1.incr("counter")
 
 
 main()
