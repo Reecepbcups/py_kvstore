@@ -9,14 +9,16 @@ from setuptools import setup
 
 setup(
     name="py_kvstore",
-    version="0.0.1",
+    version="0.0.4",
     description="A key value store",
-    url="https://github.com/shuds13/pyexample",
+    url="https://github.com/Reecepbcups/py_kvstore",
     author="Reece Willims",
     author_email="reecepbcups@gmail.com",
     license="Apache 2.0",
     packages=["py_kvstore"],
     install_requires=[],
+    long_description=open("README.md").read() + "\n\n",
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Science/Research",

@@ -2,12 +2,14 @@ import json
 import os
 import time
 
-from py_kvstore import KV, Pair, current_dir
+from py_kvstore import KVStore, Pair
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def test():
     print("Running KV test")
-    kv_a = KV(name="a")
+    kv_a = KVStore(name="a")
     kv_a_file = os.path.join(current_dir, "a.json")
 
     current_time = int(time.time())
@@ -72,4 +74,5 @@ def test():
     print("KV test passed")
 
 
-test()
+if __name__ == "__main__":
+    test()
