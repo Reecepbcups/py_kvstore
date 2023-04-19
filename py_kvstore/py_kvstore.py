@@ -31,10 +31,11 @@ class Pair:
         return {
             "value": self.value,
             "timeout": self.timeout,
-            "ttl_seconds": (
-                -1 if self.timeout == -1 else self.timeout - int(time.time())
-            ),
+            "ttl_seconds": self.get_ttl_seconds(),
         }
+
+    def get_ttl_seconds(self):
+        return -1 if self.timeout == -1 else self.timeout - int(time.time())
 
     @staticmethod
     def fromJSON(json: dict):
@@ -172,12 +173,12 @@ class KVStore:
     def clear(self):
         self.store.clear()
 
-    def ttl(self, key) -> int:
+    def ttl_seconds(self, key) -> int | None:
         self.delete_expired_data_if_applicable(key)
         if key in self.store:
             p = self.store[key]
-            return p.timeout
-        return -2
+            return p.get_ttl_seconds()
+        return None
 
     def dbg(self):
         self.delete_all_expired_data()
