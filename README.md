@@ -1,8 +1,20 @@
-# py_kvstore
+# Python KVStore
+
+[pypi py-kvstore](https://pypi.org/project/py-kvstore/)
+
+---
 
 A simple Key-Value store (similar to redis) built in python.
 
 Sets can expire, not expire, and be saved with any arbitrary data. So you can set it as a JSON string, a dict, int, or any other value. It is up to the developer to implement and parse types correctly.
+
+---
+
+## Projects Using
+
+- [CosmosSDK Endpoint Cache](https://github.com/Reecepbcups/cosmos-endpoint-cache)
+
+---
 
 ## Notable Features
 
@@ -44,7 +56,3 @@ kv1.clear()
 # Load the previous dump from file
 kv1.load()
 ```
-
-## Example Repos using this
-
-- [Cosmos Endpoint Cache](https://github.com/Reecepbcups/cosmos-endpoint-cache)
