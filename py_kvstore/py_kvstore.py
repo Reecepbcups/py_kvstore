@@ -7,15 +7,25 @@ import os
 import re as regex
 import time
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Optional
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
+
+
+class StoreType(Enum):
+    PAIR = "pair"
+    HASHSET = "hashset"
+
+    def __str__(self):
+        return self.value
 
 
 @dataclass
 class Pair:
     value: Any
     timeout: int
+    store_type: str = str(StoreType.PAIR)
 
     def toJSON(self):
         return {"value": self.value, "timeout": self.timeout}
@@ -29,17 +39,28 @@ class Pair:
 class HashSet(Pair):
     value: dict[str, Any]
     timeout: int
+    store_type: str = str(StoreType.HASHSET)
 
 
 class KVStore:
     # TODO: Specify in memory or on the disk (slower, but better for large data sets)
-    def __init__(self, name: Optional[str] = None, dump_dir=None):
+    def __init__(self, name: Optional[str] = None, dump_dir: str = ""):
         self.name = name
         self.store: dict[str, Pair] = {}
 
         self.dump_dir = current_dir
-        if dump_dir is not None:
+        if len(dump_dir) > 0:
             self.dump_dir = dump_dir
+
+    def get_dump_dir(self):
+        return self.dump_dir
+
+    def get_dump_file(self):
+        return os.path.join(self.dump_dir, f"{self.name}.json")
+
+    def __check_type(self, key: str, store_type: StoreType):
+        if self.store[key].store_type != str(store_type):
+            raise Exception(f"Key {key} is not a {store_type}")
 
     def set(self, key: str, value: Any, timeout: int = -1):
         """
@@ -68,6 +89,9 @@ class KVStore:
         if key not in self.store:
             # timeout can only be set on creation
             self.store[key] = HashSet({}, timeout)
+        else:
+            if self.store[key].store_type != "hashset":
+                raise Exception(f"Key {key} is not a hashset")
 
         # grab the current hset
         hset = self.store[key].value
@@ -89,6 +113,8 @@ class KVStore:
         if field not in self.store[key].value:
             return None
 
+        self.__check_type(key, StoreType.HASHSET)
+
         return self.store[key].value[field]
 
     def incr(self, key: str, amount: int = 1) -> int:
@@ -97,7 +123,8 @@ class KVStore:
             self.set(key, amount)
             return amount
 
-        # what if key value is not an int?
+        self.__check_type(key, StoreType.PAIR)
+
         if not isinstance(self.store[key].value, int):
             raise Exception(f"key:{key}'s value is not an int")
 
@@ -108,6 +135,8 @@ class KVStore:
         self.delete_expired_data_if_applicable(key)
 
         if key in self.store:
+            self.__check_type(key, StoreType.PAIR)
+
             return self.store[key].value
         return None
 
@@ -119,7 +148,10 @@ class KVStore:
         else:
             return [k for k in self.store.keys() if regex.match(search_regex, k)]
 
-    def delete(self, *keys) -> bool:
+    def delete(self, keys: str | list[str]) -> bool:
+        if isinstance(keys, str):
+            keys = [keys]
+
         for key in keys:
             if key in self.store:
                 del self.store[key]
@@ -128,7 +160,7 @@ class KVStore:
         return True
 
     def clear(self):
-        self.store = {}
+        self.store.clear()
 
     def ttl(self, key) -> int:
         self.delete_expired_data_if_applicable(key)
@@ -152,15 +184,13 @@ class KVStore:
     def delete_expired_data_if_applicable(self, key: str) -> bool:
         if key in self.store:
             timeout = self.store[key].timeout
-            if timeout >= 0 and timeout < int(time.time()):
+            if timeout >= 0 and timeout <= int(time.time()):
                 del self.store[key]
                 return True
         return False
 
     def dump(self):
-        file = os.path.join(self.dump_dir, f"{self.name}.json")
-        # print("Dumping to file", file)
-
+        file = self.get_dump_file()
         with open(file, "w") as f:
             json.dump(
                 self.store,
@@ -172,7 +202,7 @@ class KVStore:
     def load(self):
         current_time = int(time.time())
 
-        file = os.path.join(self.dump_dir, f"{self.name}.json")
+        file = self.get_dump_file()
         if not os.path.isfile(file):
             return
 
