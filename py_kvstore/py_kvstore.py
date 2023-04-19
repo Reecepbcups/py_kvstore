@@ -216,8 +216,6 @@ class KVStore:
         self.delete_all_expired_data()
 
     def load(self):
-        current_time = int(time.time())
-
         file = self.get_dump_file()
         if not os.path.isfile(file):
             return
