@@ -181,13 +181,21 @@ class KVStore:
             if v.timeout >= current_time or v.timeout == -1
         }
 
-    def delete_expired_data_if_applicable(self, key: str) -> bool:
-        if key in self.store:
-            timeout = self.store[key].timeout
-            if timeout >= 0 and timeout <= int(time.time()):
-                del self.store[key]
-                return True
-        return False
+    def delete_expired_data_if_applicable(self, keys: str | list[str]) -> int:
+        """
+        Returns an int of the number of keys removed
+        """
+        if isinstance(keys, str):
+            keys = [keys]
+
+        found = 0
+        for k in keys:
+            if k in self.store:
+                timeout = self.store[k].timeout
+                if timeout >= 0 and timeout <= int(time.time()):
+                    del self.store[k]
+                    found += 1
+        return found
 
     def dump(self):
         file = self.get_dump_file()
