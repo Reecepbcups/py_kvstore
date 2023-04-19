@@ -28,7 +28,13 @@ class Pair:
     store_type: str = str(StoreType.PAIR)
 
     def toJSON(self):
-        return {"value": self.value, "timeout": self.timeout}
+        return {
+            "value": self.value,
+            "timeout": self.timeout,
+            "ttl_seconds": (
+                -1 if self.timeout == -1 else self.timeout - int(time.time())
+            ),
+        }
 
     @staticmethod
     def fromJSON(json: dict):
@@ -62,6 +68,9 @@ class KVStore:
         if self.store[key].store_type != str(store_type):
             raise Exception(f"Key {key} is not a {store_type}")
 
+    def __value_not_expired(self, value: Pair | HashSet):
+        return value.timeout == -1 or value.timeout > int(time.time())
+
     def set(self, key: str, value: Any, timeout: int = -1):
         """
         -1: no timeout
@@ -88,7 +97,8 @@ class KVStore:
 
         if key not in self.store:
             # timeout can only be set on creation
-            self.store[key] = HashSet({}, timeout)
+            current_time = int(time.time())
+            self.store[key] = HashSet({}, current_time + timeout)
         else:
             if self.store[key].store_type != "hashset":
                 raise Exception(f"Key {key} is not a hashset")
@@ -174,11 +184,8 @@ class KVStore:
         print("dbg", self.name, self.dump_dir, self.store)
 
     def delete_all_expired_data(self):
-        current_time = int(time.time())
         self.store = {
-            k: v
-            for k, v in self.store.items()
-            if v.timeout >= current_time or v.timeout == -1
+            k: v for k, v in self.store.items() if self.__value_not_expired(v)
         }
 
     def delete_expired_data_if_applicable(self, keys: str | list[str]) -> int:
@@ -219,9 +226,8 @@ class KVStore:
 
         for key, value in pre_store.items():
             p = Pair.fromJSON(value)
-            if p.timeout <= current_time and p.timeout != -1:
-                continue
-            self.store[key] = p
+            if self.__value_not_expired(p):
+                self.store[key] = p
 
     # def __del__(self):
     #     # on close of program, dump the data to a file
@@ -229,7 +235,12 @@ class KVStore:
     #     self.dump()
 
     def __str__(self):
+        self.delete_all_expired_data()
         return f"Name: {self.name}, Store Keys Amount: {len(self.store)}"
+
+    def to_json(self) -> dict:
+        self.delete_all_expired_data()
+        return json.loads(json.dumps(self.store, default=lambda o: o.toJSON()))
 
 
 def main():

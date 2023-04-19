@@ -99,10 +99,14 @@ def test():
     verify_dump(
         kv_a,
         {
-            "a": {"value": 1, "timeout": current_time + 1},
-            "b": {"value": 2, "timeout": current_time + 2},
-            "c": {"value": 3, "timeout": current_time + 3},
-            "no_expire": {"value": ["test", 1, 2, 3, 4, {"k": "v"}], "timeout": -1},
+            "a": {"value": 1, "timeout": current_time + 1, "ttl_seconds": 1},
+            "b": {"value": 2, "timeout": current_time + 2, "ttl_seconds": 2},
+            "c": {"value": 3, "timeout": current_time + 3, "ttl_seconds": 3},
+            "no_expire": {
+                "value": ["test", 1, 2, 3, 4, {"k": "v"}],
+                "timeout": -1,
+                "ttl_seconds": -1,
+            },
         },
     )
 
