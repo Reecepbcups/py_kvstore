@@ -16,5 +16,8 @@ upload:
 	# https://packaging.python.org/en/latest/tutorials/packaging-projects/	
 	twine upload dist/*
 
+test:
+	@python py_kvstore/test.py
+
 version:
 	@pip show python-ibc
