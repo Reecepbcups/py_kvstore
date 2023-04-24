@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name="py_kvstore",
-    version="0.0.6",
+    version="0.0.7",
     description="A key value store",
     url="https://github.com/Reecepbcups/py_kvstore",
     author="Reece Willims",

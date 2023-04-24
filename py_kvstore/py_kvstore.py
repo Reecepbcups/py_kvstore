@@ -6,9 +6,9 @@ import json
 import os
 import re as regex
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -23,8 +23,8 @@ class StoreType(Enum):
 
 @dataclass
 class Pair:
-    value: Any
-    timeout: int
+    value: Any = ""
+    timeout: int = 0
     store_type: str = str(StoreType.PAIR)
 
     def toJSON(self):
@@ -44,8 +44,8 @@ class Pair:
 
 @dataclass
 class HashSet(Pair):
-    value: dict[str, Any]
-    timeout: int
+    value: Dict[str, Any] = field(default_factory=dict)
+    timeout: int = 0
     store_type: str = str(StoreType.HASHSET)
 
 
@@ -53,7 +53,7 @@ class KVStore:
     # TODO: Specify in memory or on the disk (slower, but better for large data sets)
     def __init__(self, name: Optional[str] = None, dump_dir: str = ""):
         self.name = name
-        self.store: dict[str, Pair] = {}
+        self.store: Dict[str, Pair] = {}
 
         self.dump_dir = current_dir
         if len(dump_dir) > 0:
